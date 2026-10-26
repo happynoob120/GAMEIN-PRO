@@ -81,11 +81,11 @@ export default function LiveChatModule({
 
     try {
       const messagesRef = collection(db, 'messages');
+      // Query without composite orderBy so Firestore does not require a custom composite index
       const q = query(
         messagesRef,
         where('channelId', '==', activeChannelId),
-        orderBy('createdAt', 'asc'),
-        limit(50)
+        limit(60)
       );
 
       unsubscribe = onSnapshot(
@@ -108,6 +108,8 @@ export default function LiveChatModule({
                 reactions: data.reactions || {}
               });
             });
+            // Sort chronologically ascending
+            fetched.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
             setMessages(fetched);
           } else {
             setMessages(fallbackMessages);

@@ -5,13 +5,8 @@ import {
   Swords, 
   Trophy, 
   Shield, 
-  Zap, 
   CheckCircle2, 
-  Flame, 
   Clock, 
-  Check, 
-  AlertCircle,
-  ArrowRight,
   Crosshair
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -25,22 +20,20 @@ interface RivalsDuelModalProps {
 }
 
 const RIVALS_GAMES = [
-  'Marvel Rivals',
+  'Roblox Rivals',
   'Valorant',
   'Counter-Strike 2',
   'Apex Legends',
-  'Overwatch 2',
   'Fortnite',
-  'Rocket League',
-  'Tekken 8'
+  'Rocket League'
 ];
 
 const SUGGESTED_RIVALS = [
-  { tag: 'ViperX_Pro', rank: 'Apex Predator', trophies: 2840, primary: 'Marvel Rivals' },
-  { tag: 'ShadowBlade_99', rank: 'Apex Predator', trophies: 2610, primary: 'Counter-Strike 2' },
-  { tag: 'NeonPulse_Valk', rank: 'Master', trophies: 2390, primary: 'Marvel Rivals' },
+  { tag: 'ViperX_Pro', rank: 'Apex Predator', trophies: 2840, primary: 'Roblox Rivals' },
+  { tag: 'ShadowBlade_99', rank: 'Apex Predator', trophies: 2610, primary: 'Roblox Rivals' },
+  { tag: 'NeonPulse_Valk', rank: 'Master', trophies: 2390, primary: 'Roblox Rivals' },
   { tag: 'GhostRecon_Z', rank: 'Master', trophies: 2150, primary: 'Valorant' },
-  { tag: 'CyberPhoenix', rank: 'Diamond', trophies: 1980, primary: 'Marvel Rivals' }
+  { tag: 'CyberPhoenix', rank: 'Diamond', trophies: 1980, primary: 'Roblox Rivals' }
 ];
 
 export default function RivalsDuelModal({
@@ -52,9 +45,9 @@ export default function RivalsDuelModal({
 }: RivalsDuelModalProps) {
   const [activeTab, setActiveTab] = useState<'challenge' | 'active_duels'>('challenge');
   const [rivalTag, setRivalTag] = useState(targetGamerTag || '');
-  const [selectedGame, setSelectedGame] = useState('Marvel Rivals');
+  const [selectedGame, setSelectedGame] = useState('Roblox Rivals');
   const [wagerTrophies, setWagerTrophies] = useState<number>(25);
-  const [format, setFormat] = useState('1v1 First to 10 Frags');
+  const [format, setFormat] = useState('1v1 Arena Aim Duel (First to 5)');
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
   // Active Rival Duels list
@@ -65,7 +58,7 @@ export default function RivalsDuelModal({
       challengerTag: 'ViperX_Pro',
       rivalId: currentUser ? currentUser.userId : 'me',
       rivalTag: currentUser ? currentUser.gamerTag : 'You',
-      game: 'Marvel Rivals',
+      game: 'Roblox Rivals',
       wagerTrophies: 50,
       status: 'pending',
       createdAt: '15 mins ago'
@@ -76,7 +69,7 @@ export default function RivalsDuelModal({
       challengerTag: currentUser ? currentUser.gamerTag : 'You',
       rivalId: 'demo-shadow',
       rivalTag: 'ShadowBlade_99',
-      game: 'Counter-Strike 2',
+      game: 'Roblox Rivals',
       wagerTrophies: 25,
       status: 'accepted',
       createdAt: '2 hours ago'
@@ -87,11 +80,11 @@ export default function RivalsDuelModal({
       challengerTag: 'NeonPulse_Valk',
       rivalId: currentUser ? currentUser.userId : 'me',
       rivalTag: currentUser ? currentUser.gamerTag : 'You',
-      game: 'Marvel Rivals',
+      game: 'Roblox Rivals',
       wagerTrophies: 30,
       status: 'completed',
       winnerTag: currentUser ? currentUser.gamerTag : 'You',
-      score: '10 - 7',
+      score: '5 to 3',
       createdAt: 'Yesterday'
     }
   ]);
@@ -127,7 +120,7 @@ export default function RivalsDuelModal({
     };
 
     setDuels([newDuel, ...duels]);
-    setFeedbackMessage(`Rival duel dispatched to @${cleanTarget} for ${wagerTrophies} trophies wager in ${selectedGame}!`);
+    setFeedbackMessage(`Rival challenge sent to @${cleanTarget} for ${wagerTrophies} trophies wager in ${selectedGame}!`);
     
     confetti({
       particleCount: 50,
@@ -154,7 +147,7 @@ export default function RivalsDuelModal({
       ...d,
       status: 'completed' as const,
       winnerTag: winner,
-      score: won ? '10 - 6' : '7 - 10'
+      score: won ? '5 to 2' : '3 to 5'
     } : d));
 
     if (won && onDuelCompleted) {
@@ -178,10 +171,10 @@ export default function RivalsDuelModal({
             </div>
             <div>
               <h3 className="text-base font-black text-white font-heading">
-                PRO RIVALS • 1v1 DUEL & SCRIM NEXUS
+                ROBLOX RIVALS 1v1 DUEL
               </h3>
-              <p className="text-xs text-slate-300 font-medium">
-                Challenge rivals, wager trophies, and settle scores in Marvel Rivals & competitive titles
+              <p className="text-xs text-slate-300">
+                Challenge rivals, wager trophies, and compete in Roblox Rivals scrims
               </p>
             </div>
           </div>
@@ -207,7 +200,7 @@ export default function RivalsDuelModal({
             }`}
           >
             <Swords className="w-3.5 h-3.5" />
-            <span>Issue Rival Challenge</span>
+            <span>Issue Challenge</span>
           </button>
 
           <button
@@ -227,7 +220,7 @@ export default function RivalsDuelModal({
         {/* Modal Body */}
         <div className="p-5 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto text-sm">
           {feedbackMessage && (
-            <div className="p-3 rounded-lg bg-sky-950/80 border-2 border-sky-500 text-sky-200 text-xs font-medium flex items-center gap-2">
+            <div className="p-3 rounded-lg bg-sky-950 border-2 border-sky-500 text-sky-200 text-xs font-medium flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-sky-400" />
               <span>{feedbackMessage}</span>
             </div>
@@ -237,9 +230,9 @@ export default function RivalsDuelModal({
             <form onSubmit={handleSendChallenge} className="space-y-4">
               {/* Rival Target Selection */}
               <div>
-                <label className="block text-xs font-mono uppercase text-slate-200 mb-1.5 font-bold flex items-center justify-between">
+                <label className="block text-xs uppercase text-slate-200 mb-1.5 font-bold flex items-center justify-between">
                   <span>Target Rival Gamer Handle</span>
-                  <span className="text-rose-400 font-mono text-[10px]">Select or type handle</span>
+                  <span className="text-rose-400 text-xs">Enter handle</span>
                 </label>
                 <input 
                   type="text"
@@ -247,13 +240,13 @@ export default function RivalsDuelModal({
                   value={rivalTag}
                   onChange={(e) => setRivalTag(e.target.value)}
                   placeholder="e.g. ViperX_Pro or ShadowBlade_99"
-                  className="w-full bg-[#1e293b] border border-slate-600 rounded-lg px-3.5 py-2.5 text-white placeholder-slate-400 focus:outline-none focus:border-rose-400 font-mono text-sm"
+                  className="w-full bg-[#1e293b] border border-slate-600 rounded-lg px-3.5 py-2.5 text-white placeholder-slate-400 focus:outline-none focus:border-rose-400 text-sm"
                 />
 
                 {/* Quick select suggested rivals */}
                 <div className="mt-2.5">
-                  <span className="text-[10px] text-slate-400 font-mono uppercase block mb-1.5 font-semibold">
-                    Suggested Rivals from Leaderboard:
+                  <span className="text-xs text-slate-400 uppercase block mb-1.5 font-semibold">
+                    Top Roblox Rivals Contenders:
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {SUGGESTED_RIVALS.map(r => (
@@ -262,15 +255,15 @@ export default function RivalsDuelModal({
                         key={r.tag}
                         onClick={() => {
                           setRivalTag(r.tag);
-                          if (r.primary) setSelectedGame(r.primary);
+                          setSelectedGame(r.primary);
                         }}
-                        className={`px-2.5 py-1 rounded-md text-xs font-mono transition-colors border ${
+                        className={`px-2.5 py-1 rounded-md text-xs transition-colors border ${
                           rivalTag === r.tag
                             ? 'bg-rose-600 text-white border-rose-500 font-bold'
                             : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white hover:border-slate-500'
                         }`}
                       >
-                        @{r.tag} <span className="text-[10px] text-amber-300">({r.trophies}🏆)</span>
+                        @{r.tag} <span className="text-amber-300 font-bold">({r.trophies} Trophies)</span>
                       </button>
                     ))}
                   </div>
@@ -279,18 +272,18 @@ export default function RivalsDuelModal({
 
               {/* Game Selection */}
               <div>
-                <label className="block text-xs font-mono uppercase text-slate-200 mb-1.5 font-bold">
-                  Select Competitive Title
+                <label className="block text-xs uppercase text-slate-200 mb-1.5 font-bold">
+                  Select Game
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {RIVALS_GAMES.map(g => (
                     <button
                       type="button"
                       key={g}
                       onClick={() => setSelectedGame(g)}
-                      className={`p-2 rounded-lg text-xs font-bold text-left transition-colors border ${
+                      className={`p-2.5 rounded-lg text-xs font-bold text-left transition-colors border ${
                         selectedGame === g
-                          ? 'bg-rose-600/30 border-rose-500 text-rose-200 font-black'
+                          ? 'bg-rose-600 border-rose-500 text-white font-black'
                           : 'bg-[#1e293b] border-slate-700 text-slate-300 hover:text-white'
                       }`}
                     >
@@ -303,7 +296,7 @@ export default function RivalsDuelModal({
               {/* Match Format & Wager */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-[#1e293b] p-3.5 rounded-xl border border-slate-700">
                 <div>
-                  <label className="block text-xs font-mono uppercase text-slate-300 mb-1 font-semibold">
+                  <label className="block text-xs uppercase text-slate-300 mb-1 font-semibold">
                     Match Format
                   </label>
                   <select
@@ -311,17 +304,17 @@ export default function RivalsDuelModal({
                     onChange={(e) => setFormat(e.target.value)}
                     className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-rose-400 font-medium"
                   >
+                    <option value="1v1 Arena Aim Duel (First to 5)">1v1 Arena Aim Duel (First to 5)</option>
                     <option value="1v1 First to 10 Frags">1v1 First to 10 Frags</option>
+                    <option value="Sniper Only Duel">Sniper Only Duel</option>
                     <option value="Best of 3 Scrim Matches">Best of 3 Scrim Matches</option>
-                    <option value="Sudden Death Duel">Sudden Death Duel</option>
-                    <option value="Marvel Rivals 2v2 Scrim">Marvel Rivals 2v2 Scrim</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono uppercase text-slate-300 mb-1 font-semibold flex items-center justify-between">
+                  <label className="block text-xs uppercase text-slate-300 mb-1 font-semibold flex items-center justify-between">
                     <span>Trophy Wager</span>
-                    <span className="text-amber-300 font-mono font-bold">{wagerTrophies} Trophies</span>
+                    <span className="text-amber-300 font-bold">{wagerTrophies} Trophies</span>
                   </label>
                   <div className="grid grid-cols-4 gap-1.5">
                     {[10, 25, 50, 100].map(amt => (
@@ -329,26 +322,26 @@ export default function RivalsDuelModal({
                         type="button"
                         key={amt}
                         onClick={() => setWagerTrophies(amt)}
-                        className={`py-1.5 rounded text-xs font-mono font-bold transition-colors border ${
+                        className={`py-1.5 rounded text-xs font-bold transition-colors border ${
                           wagerTrophies === amt
                             ? 'bg-amber-400 text-slate-950 border-amber-300'
                             : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
                         }`}
                       >
-                        {amt}🏆
+                        {amt}
                       </button>
                     ))}
                   </div>
                 </div>
               </div>
 
-              {/* SINGLE Primary Action Button */}
+              {/* Single Primary Action Button */}
               <button
                 type="submit"
                 className="w-full py-3 px-4 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-black text-xs font-heading uppercase tracking-wider transition-colors shadow-md flex items-center justify-center gap-2"
               >
                 <Swords className="w-4 h-4" />
-                <span>DISPATCH RIVAL CHALLENGE</span>
+                <span>SEND RIVAL CHALLENGE</span>
               </button>
             </form>
           ) : (
@@ -368,23 +361,23 @@ export default function RivalsDuelModal({
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="font-heading font-black text-white text-sm">
-                          @{d.challengerTag} <span className="text-rose-400">VS</span> @{d.rivalTag}
+                          @{d.challengerTag} <span className="text-rose-400">vs</span> @{d.rivalTag}
                         </span>
-                        <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-200 border border-slate-700 font-mono text-[10px] font-bold">
+                        <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-200 border border-slate-700 text-xs font-bold">
                           {d.game}
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-2 text-xs font-mono text-slate-300">
+                      <div className="flex items-center gap-2 text-xs text-slate-300">
                         <span className="text-amber-300 font-bold flex items-center gap-1">
-                          <Trophy className="w-3 h-3 fill-amber-400" /> Wager: {d.wagerTrophies}
+                          <Trophy className="w-3 h-3 fill-amber-400" /> {d.wagerTrophies} Trophies
                         </span>
-                        <span>•</span>
-                        <span className="capitalize">{d.createdAt}</span>
+                        <span>|</span>
+                        <span>{d.createdAt}</span>
                       </div>
 
                       {isCompleted && (
-                        <p className="text-xs font-mono text-emerald-400 font-bold">
+                        <p className="text-xs text-emerald-400 font-bold">
                           Winner: @{d.winnerTag} ({d.score})
                         </p>
                       )}
@@ -403,7 +396,7 @@ export default function RivalsDuelModal({
                       )}
 
                       {isPending && isChallenger && (
-                        <span className="text-xs text-amber-400 font-mono flex items-center gap-1 font-semibold">
+                        <span className="text-xs text-amber-400 flex items-center gap-1 font-semibold">
                           <Clock className="w-3.5 h-3.5" /> Awaiting Rival
                         </span>
                       )}
@@ -428,7 +421,7 @@ export default function RivalsDuelModal({
                       )}
 
                       {isCompleted && (
-                        <span className="px-2.5 py-1 rounded bg-slate-800 text-slate-400 font-mono text-xs font-bold">
+                        <span className="px-2.5 py-1 rounded bg-slate-800 text-slate-400 text-xs font-bold">
                           Concluded
                         </span>
                       )}

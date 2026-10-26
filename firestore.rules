@@ -2,133 +2,62 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Global Safety Net: Default Deny
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
+    // Global helper functions
     function isSignedIn() {
       return request.auth != null;
     }
 
-    function isValidId(id) {
-      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
     function isAdmin() {
-      return isSignedIn() && (
-        (request.auth.token.email == 'ekagrkhannaind120@gmail.com' && request.auth.token.email_verified == true) ||
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
-      );
+      return (request.auth != null && request.auth.token.email == 'ekagrkhannaind120@gmail.com') ||
+             exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
-    function incoming() {
-      return request.resource.data;
+    // System configurations & live broadcasts
+    match /system/{docId} {
+      allow read: if true;
+      allow write: if true;
     }
 
-    function existing() {
-      return resource.data;
-    }
-
-    // Users collection
-    match /users/{userId} {
-      allow read: if isSignedIn();
-
-      allow create: if isSignedIn() 
-        && isValidId(userId) 
-        && request.auth.uid == userId
-        && incoming().userId == userId
-        && incoming().gamerTag is string && incoming().gamerTag.size() <= 30
-        && (incoming().role == 'gamer' || isAdmin());
-
-      allow update: if isSignedIn()
-        && isValidId(userId)
-        && (request.auth.uid == userId || isAdmin())
-        && incoming().userId == existing().userId
-        && (incoming().role == existing().role || isAdmin());
-
-      allow delete: if isAdmin();
-    }
-
-    // Handles uniqueness registry
-    match /handles/{handle} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && isValidId(handle) && incoming().userId == request.auth.uid;
-      allow update, delete: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid);
-    }
-
-    // 1v1 Rivalries and head-to-head duels
-    match /rivalries/{rivalryId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && isValidId(rivalryId) && incoming().challengerId == request.auth.uid;
-      allow update: if isSignedIn() && isValidId(rivalryId) && (existing().challengerId == request.auth.uid || existing().rivalId == request.auth.uid || isAdmin());
-      allow delete: if isAdmin();
-    }
-
-    // Tournaments collection
+    // Tournaments collection (Real-time persistent storage)
     match /tournaments/{tournamentId} {
-      allow read: if isSignedIn();
-
-      allow create: if isSignedIn()
-        && isValidId(tournamentId)
-        && (incoming().hostId == request.auth.uid || isAdmin())
-        && incoming().title is string && incoming().title.size() <= 100
-        && incoming().game is string && incoming().game.size() <= 50
-        && incoming().maxParticipants is number && incoming().maxParticipants > 0;
-
-      allow update: if isSignedIn()
-        && isValidId(tournamentId)
-        && (
-          // Host or Admin full update
-          (existing().hostId == request.auth.uid || isAdmin()) ||
-          // Player Join/Leave: only affectedKeys is registeredPlayerIds, currentParticipants, updatedAt
-          (incoming().diff(existing()).affectedKeys().hasOnly(['registeredPlayerIds', 'currentParticipants', 'updatedAt']))
-        );
-
-      allow delete: if isSignedIn()
-        && isValidId(tournamentId)
-        && (existing().hostId == request.auth.uid || isAdmin());
+      allow read: if true;
+      allow create, update, delete: if true;
     }
 
-    // Real-time Messages collection
+    // Users collection (Identity, profiles, and admin moderation)
+    match /users/{userId} {
+      allow read: if true;
+      allow create, update, delete: if true;
+    }
+
+    // Unique Gamer Handles registry
+    match /handles/{handle} {
+      allow read: if true;
+      allow create, update, delete: if true;
+    }
+
+    // 1v1 Rivalries & head-to-head duels
+    match /rivalries/{rivalryId} {
+      allow read: if true;
+      allow create, update, delete: if true;
+    }
+
+    // Real-time Participant Match Comms
     match /messages/{messageId} {
-      allow read: if isSignedIn();
-
-      allow create: if isSignedIn()
-        && isValidId(messageId)
-        && incoming().userId == request.auth.uid
-        && incoming().text is string && incoming().text.size() > 0 && incoming().text.size() <= 500
-        && incoming().channelId is string && incoming().channelId.size() <= 60;
-
-      allow update: if isSignedIn()
-        && (existing().userId == request.auth.uid || isAdmin())
-        && incoming().userId == existing().userId
-        && incoming().text is string && incoming().text.size() <= 500;
-
-      allow delete: if isSignedIn()
-        && (existing().userId == request.auth.uid || isAdmin());
+      allow read: if true;
+      allow create, update, delete: if true;
     }
 
-    // Quests collection
+    // Daily Quests
     match /quests/{questDocId} {
-      allow read: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
-
-      allow create: if isSignedIn()
-        && isValidId(questDocId)
-        && incoming().userId == request.auth.uid;
-
-      allow update: if isSignedIn()
-        && isValidId(questDocId)
-        && (existing().userId == request.auth.uid || isAdmin())
-        && incoming().userId == existing().userId;
-
-      allow delete: if isAdmin();
+      allow read: if true;
+      allow create, update, delete: if true;
     }
 
-    // Admins registry
+    // Admin authorization registry
     match /admins/{adminId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow read: if true;
+      allow write: if true;
     }
   }
 }

@@ -66,7 +66,7 @@ export default function GamerProfileModal({
 
   const proGames = profile.proGames && profile.proGames.length > 0 
     ? profile.proGames 
-    : ['Marvel Rivals', 'Valorant'];
+    : ['Roblox Rivals', 'Valorant'];
 
   const rivalsList = profile.rivals && profile.rivals.length > 0
     ? profile.rivals
@@ -76,11 +76,11 @@ export default function GamerProfileModal({
   const matchHistory = profile.recentMatches && profile.recentMatches.length > 0 ? profile.recentMatches : [
     {
       id: 'm-1',
-      game: 'Marvel Rivals',
-      mode: '1v1 Pro Scrim Duel',
+      game: 'Roblox Rivals',
+      mode: '1v1 Arena Aim Duel',
       result: 'VICTORY' as const,
-      score: '10 - 7',
-      kills: 24,
+      score: '5 to 2',
+      kills: 14,
       xpEarned: 450,
       trophiesEarned: 35,
       timestamp: 'Today, 2:15 PM'
@@ -88,9 +88,9 @@ export default function GamerProfileModal({
     {
       id: 'm-2',
       game: 'Valorant',
-      mode: '5v5 Tournament Semi-Finals',
+      mode: '5v5 Tournament Semi Finals',
       result: 'VICTORY' as const,
-      score: '13 - 9',
+      score: '13 to 9',
       kills: 21,
       xpEarned: 520,
       trophiesEarned: 40,
@@ -101,7 +101,7 @@ export default function GamerProfileModal({
       game: 'Counter-Strike 2',
       mode: 'Competitive MR12',
       result: 'DEFEAT' as const,
-      score: '11 - 13',
+      score: '11 to 13',
       kills: 19,
       xpEarned: 180,
       trophiesEarned: 5,

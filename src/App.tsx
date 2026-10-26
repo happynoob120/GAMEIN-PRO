@@ -25,7 +25,15 @@ import {
 } from 'lucide-react';
 import { auth, db } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { 
+  doc, 
+  getDoc, 
+  setDoc, 
+  deleteDoc, 
+  updateDoc, 
+  collection, 
+  onSnapshot 
+} from 'firebase/firestore';
 import { UserProfile, Tournament, BracketMatch } from './types';
 import TrophyShowcase from './components/TrophyShowcase';
 import ReflexLab from './components/ReflexLab';
@@ -42,6 +50,194 @@ import RivalsDuelModal from './components/RivalsDuelModal';
 import AdminPortal from './components/AdminPortal';
 import confetti from 'canvas-confetti';
 
+// High quality seed tournaments including Roblox Rivals
+const SEED_TOURNAMENTS: Tournament[] = [
+  {
+    id: 'tourn-rivals-1',
+    title: 'Roblox Rivals World Championship 2026',
+    game: 'Roblox Rivals',
+    host: 'Roblox Rivals Circuit',
+    hostId: 'roblox-official',
+    type: 'Single Elimination',
+    format: '1v1 Arena Aim Duel (First to 5)',
+    prizePool: '$15,000 USD + 1,500 Trophies',
+    entryFee: 'Free Entry',
+    maxParticipants: 16,
+    currentParticipants: 14,
+    registeredPlayerIds: ['rbx-1', 'rbx-2'],
+    status: 'live',
+    startDate: 'Live Now | Semi Finals',
+    description: 'The premier Roblox Rivals competitive tournament. Fast aim duels, sniper accuracy, and weapon loadout mastery on Arena and Crossfire.',
+    rules: 'Standard Roblox Rivals tournament rules. Weapons permitted: Assault Rifle, Sniper, Shotgun, and Katana. Default map pool: Arena, Crossfire, Cyberpunk.',
+    gameBanner: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80',
+    winner: undefined,
+    bracket: [
+      {
+        id: 'mr1',
+        round: 1,
+        matchNumber: 1,
+        teamA: { name: 'Viper Aimers', score: 5, winner: true },
+        teamB: { name: 'Crossfire Clan', score: 2, winner: false },
+        status: 'completed'
+      },
+      {
+        id: 'mr2',
+        round: 1,
+        matchNumber: 2,
+        teamA: { name: 'Sniper Syndicate', score: 5, winner: true },
+        teamB: { name: 'Cyber Wolves', score: 3, winner: false },
+        status: 'completed'
+      },
+      {
+        id: 'mr3',
+        round: 2,
+        matchNumber: 3,
+        teamA: { name: 'Viper Aimers', score: 4, winner: false },
+        teamB: { name: 'Sniper Syndicate', score: 3, winner: false },
+        status: 'in_progress'
+      }
+    ],
+    createdAt: '2026-10-24',
+    updatedAt: '2026-10-25',
+  },
+  {
+    id: 'tourn-1',
+    title: 'Valorant Champions Climax 2026',
+    game: 'Valorant',
+    host: 'Cloud9 Esports Academy',
+    hostId: 'c9-official',
+    type: 'Single Elimination',
+    format: '5v5 Search & Destroy (BO3)',
+    prizePool: '$10,000 USD + 1,000 Trophies',
+    entryFee: 'Free Entry',
+    maxParticipants: 16,
+    currentParticipants: 14,
+    registeredPlayerIds: ['c9-1', 'c9-2'],
+    status: 'live',
+    startDate: 'Live Now • Semi Finals',
+    description: 'The premier seasonal championship for verified radiant squads. Featuring broadcast casting and anti-cheat live refereeing.',
+    rules: 'Check-in required 15m before each map. Default map pool: Haven, Ascent, Lotus, Bind, Sunset.',
+    gameBanner: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&auto=format&fit=crop&q=80',
+    winner: undefined,
+    bracket: [
+      {
+        id: 'm1',
+        round: 1,
+        matchNumber: 1,
+        teamA: { name: 'Viper Esports', score: 13, winner: true },
+        teamB: { name: 'Phantom Reborn', score: 9, winner: false },
+        status: 'completed'
+      },
+      {
+        id: 'm2',
+        round: 1,
+        matchNumber: 2,
+        teamA: { name: 'Sentinels X', score: 13, winner: true },
+        teamB: { name: 'Cyber Wolves', score: 11, winner: false },
+        status: 'completed'
+      },
+      {
+        id: 'm3',
+        round: 2,
+        matchNumber: 3,
+        teamA: { name: 'Viper Esports', score: 1, winner: false },
+        teamB: { name: 'Sentinels X', score: 1, winner: false },
+        status: 'in_progress'
+      }
+    ],
+    createdAt: '2026-10-20',
+    updatedAt: '2026-10-25',
+  },
+  {
+    id: 'tourn-2',
+    title: 'Apex Legends Global Series: Winter Apex',
+    game: 'Apex Legends',
+    host: 'Respawn Scrim Club',
+    hostId: 'respawn-club',
+    type: 'Battle Royale Points',
+    format: 'Trios BR • 6 Matches Point System',
+    prizePool: '$5,000 USD + 750 Trophies',
+    entryFee: 'Free Entry',
+    maxParticipants: 20,
+    currentParticipants: 18,
+    registeredPlayerIds: ['respawn-1'],
+    status: 'live',
+    startDate: 'Live Now • Match 4/6',
+    description: 'High octane battle royale showdown on World\'s Edge and Storm Point. Frag multipliers enabled for 3+ kill streaks.',
+    rules: 'Standard ALGS scoring: 1st (12 pts), 2nd (9 pts), 3rd (7 pts) + 1 pt per kill.',
+    gameBanner: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=800&auto=format&fit=crop&q=80',
+    bracket: [],
+    createdAt: '2026-10-21',
+    updatedAt: '2026-10-25',
+  },
+  {
+    id: 'tourn-3',
+    title: 'Counter-Strike 2 Major Scrim Invitational',
+    game: 'Counter-Strike 2',
+    host: 'ESL Pro League',
+    hostId: 'esl-admin',
+    type: 'Single Elimination',
+    format: '5v5 Competitive MR12',
+    prizePool: '$8,000 USD + 600 Trophies',
+    entryFee: 'Free Entry',
+    maxParticipants: 16,
+    currentParticipants: 11,
+    registeredPlayerIds: [],
+    status: 'upcoming',
+    startDate: 'Saturday @ 7:00 PM EST',
+    description: 'Open bracket qualifiers feeding into the Challenger Major. 128-tick private server cluster with VAC live safeguard.',
+    rules: 'Veto system via captain chat. Overtime MR3 $10,000 max round cash.',
+    gameBanner: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop&q=80',
+    bracket: [],
+    createdAt: '2026-10-22',
+    updatedAt: '2026-10-25',
+  },
+  {
+    id: 'tourn-4',
+    title: 'Rocket League Cyber Cup Season 5',
+    game: 'Rocket League',
+    host: 'Psyonix Masters Circuit',
+    hostId: 'psyonix-host',
+    type: 'Double Elimination',
+    format: '3v3 Soccar (BO5)',
+    prizePool: '$2,500 USD + 400 Trophies',
+    entryFee: 'Free Entry',
+    maxParticipants: 32,
+    currentParticipants: 22,
+    registeredPlayerIds: [],
+    status: 'upcoming',
+    startDate: 'Sunday @ 4:00 PM EST',
+    description: 'Fast aerials and high-speed goals. Both upper and lower bracket losers bracket runs supported.',
+    rules: 'Standard competitive stadium only. Mutators disabled.',
+    gameBanner: 'https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?w=800&auto=format&fit=crop&q=80',
+    bracket: [],
+    createdAt: '2026-10-23',
+    updatedAt: '2026-10-25',
+  },
+  {
+    id: 'tourn-5',
+    title: 'Fortnite Solo Blitz Championship',
+    game: 'Fortnite',
+    host: 'FNCS Community League',
+    hostId: 'fncs-host',
+    type: 'Battle Royale Points',
+    format: 'Solo Build Showdown',
+    prizePool: '$3,000 USD + 350 Trophies',
+    entryFee: 'Free Entry',
+    maxParticipants: 64,
+    currentParticipants: 58,
+    registeredPlayerIds: [],
+    status: 'upcoming',
+    startDate: 'Nov 1st @ 5:00 PM EST',
+    description: 'Test your editing speed and piece control against the region\'s fastest solo fraggers.',
+    rules: 'Points for placement and eliminations. Anonymous mode must be off.',
+    gameBanner: 'https://images.unsplash.com/photo-1560253023-3ec5d502959f?w=800&auto=format&fit=crop&q=80',
+    bracket: [],
+    createdAt: '2026-10-24',
+    updatedAt: '2026-10-25',
+  }
+];
+
 type NavTab = 'tournaments' | 'leaderboard' | 'quests' | 'reflex' | 'chat';
 
 export default function App() {
@@ -54,10 +250,8 @@ export default function App() {
   // Secret Admin Route State
   const [isAdminRoute, setIsAdminRoute] = useState(false);
 
-  // Global Broadcast Ticker
-  const [globalBroadcast, setGlobalBroadcast] = useState<string | null>(
-    '⚡ MARVEL RIVALS PREMIER TOURNAMENT: 6v6 Quarter-Finals are LIVE! Challenge rivals in 1v1 scrim duels across Tokyo 2099.'
-  );
+  // Global Broadcast Ticker (synced with Firestore /system/broadcast)
+  const [globalBroadcast, setGlobalBroadcast] = useState<string | null>(null);
 
   // Active Modals
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
@@ -67,7 +261,7 @@ export default function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isTacticalScoutOpen, setIsTacticalScoutOpen] = useState(false);
   const [isAboutTechOpen, setIsAboutTechOpen] = useState(false);
-  const [tacticalInitialGame, setTacticalInitialGame] = useState('Marvel Rivals');
+  const [tacticalInitialGame, setTacticalInitialGame] = useState('Roblox Rivals');
   const [tacticalInitialTopic, setTacticalInitialTopic] = useState('');
 
   // Rivals Feature State (Pervasive across the entire app)
@@ -78,193 +272,77 @@ export default function App() {
   const [chatChannelId, setChatChannelId] = useState('global-lobby');
   const [chatChannelTitle, setChatChannelTitle] = useState('Global Esports Lobby');
 
-  // Tournaments State with high quality seed data including Marvel Rivals
-  const [tournaments, setTournaments] = useState<Tournament[]>([
-    {
-      id: 'tourn-rivals-1',
-      title: 'Marvel Rivals Galacta Showdown Season 1',
-      game: 'Marvel Rivals',
-      host: 'NetEase Esports Circuit',
-      hostId: 'marvel-official',
-      type: 'Single Elimination',
-      format: '6v6 Convoy & Domination (BO3)',
-      prizePool: '$15,000 USD + 1,500 Trophies',
-      entryFee: 'Free Entry',
-      maxParticipants: 16,
-      currentParticipants: 14,
-      registeredPlayerIds: ['mrv-1', 'mrv-2'],
-      status: 'live',
-      startDate: 'Live Now • Semi Finals',
-      description: 'The premier 6v6 hero team battle tournament. Dynamic destructible environments on Tokyo 2099 and Yggsgard.',
-      rules: 'Standard Marvel Rivals tournament rules. Hero bans enabled for Top 8 matches. 120Hz locked client.',
-      gameBanner: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80',
-      winner: undefined,
-      bracket: [
-        {
-          id: 'mr1',
-          round: 1,
-          matchNumber: 1,
-          teamA: { name: 'Avengers Reborn', score: 2, winner: true },
-          teamB: { name: 'Doom Syndicate', score: 1, winner: false },
-          status: 'completed'
-        },
-        {
-          id: 'mr2',
-          round: 1,
-          matchNumber: 2,
-          teamA: { name: 'X-Force Scrims', score: 2, winner: true },
-          teamB: { name: 'Spider Society', score: 0, winner: false },
-          status: 'completed'
-        },
-        {
-          id: 'mr3',
-          round: 2,
-          matchNumber: 3,
-          teamA: { name: 'Avengers Reborn', score: 1, winner: false },
-          teamB: { name: 'X-Force Scrims', score: 1, winner: false },
-          status: 'in_progress'
+  // Tournaments State (Real-time synced with Firestore /tournaments)
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [tournamentsLoading, setTournamentsLoading] = useState(true);
+
+  // Real-time Firestore Tournaments sync
+  useEffect(() => {
+    let unsubscribe = () => {};
+    const tournCol = collection(db, 'tournaments');
+
+    const initTournaments = async () => {
+      try {
+        const seedSnap = await getDoc(doc(db, 'system', 'seed'));
+        if (!seedSnap.exists()) {
+          // First time platform launch: seed the initial tournaments
+          for (const t of SEED_TOURNAMENTS) {
+            await setDoc(doc(db, 'tournaments', t.id), t).catch(() => {});
+          }
+          await setDoc(doc(db, 'system', 'seed'), {
+            seeded: true,
+            timestamp: new Date().toISOString()
+          }).catch(() => {});
         }
-      ],
-      createdAt: '2026-10-24',
-      updatedAt: '2026-10-25',
-    },
-    {
-      id: 'tourn-1',
-      title: 'Valorant Champions Climax 2026',
-      game: 'Valorant',
-      host: 'Cloud9 Esports Academy',
-      hostId: 'c9-official',
-      type: 'Single Elimination',
-      format: '5v5 Search & Destroy (BO3)',
-      prizePool: '$10,000 USD + 1,000 Trophies',
-      entryFee: 'Free Entry',
-      maxParticipants: 16,
-      currentParticipants: 14,
-      registeredPlayerIds: ['c9-1', 'c9-2'],
-      status: 'live',
-      startDate: 'Live Now • Semi Finals',
-      description: 'The premier seasonal championship for verified radiant squads. Featuring broadcast casting and anti-cheat live refereeing.',
-      rules: 'Check-in required 15m before each map. Default map pool: Haven, Ascent, Lotus, Bind, Sunset.',
-      gameBanner: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&auto=format&fit=crop&q=80',
-      winner: undefined,
-      bracket: [
-        {
-          id: 'm1',
-          round: 1,
-          matchNumber: 1,
-          teamA: { name: 'Viper Esports', score: 13, winner: true },
-          teamB: { name: 'Phantom Reborn', score: 9, winner: false },
-          status: 'completed'
-        },
-        {
-          id: 'm2',
-          round: 1,
-          matchNumber: 2,
-          teamA: { name: 'Sentinels X', score: 13, winner: true },
-          teamB: { name: 'Cyber Wolves', score: 11, winner: false },
-          status: 'completed'
-        },
-        {
-          id: 'm3',
-          round: 2,
-          matchNumber: 3,
-          teamA: { name: 'Viper Esports', score: 1, winner: false },
-          teamB: { name: 'Sentinels X', score: 1, winner: false },
-          status: 'in_progress'
+      } catch (err) {
+        console.warn('Tournament seed check:', err);
+      }
+
+      unsubscribe = onSnapshot(tournCol, (snapshot) => {
+        if (!snapshot.empty) {
+          const list: Tournament[] = [];
+          snapshot.forEach((d) => {
+            list.push(d.data() as Tournament);
+          });
+          list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+          setTournaments(list);
+        } else {
+          setTournaments([]);
         }
-      ],
-      createdAt: '2026-10-20',
-      updatedAt: '2026-10-25',
-    },
-    {
-      id: 'tourn-2',
-      title: 'Apex Legends Global Series: Winter Apex',
-      game: 'Apex Legends',
-      host: 'Respawn Scrim Club',
-      hostId: 'respawn-club',
-      type: 'Battle Royale Points',
-      format: 'Trios BR • 6 Matches Point System',
-      prizePool: '$5,000 USD + 750 Trophies',
-      entryFee: 'Free Entry',
-      maxParticipants: 20,
-      currentParticipants: 18,
-      registeredPlayerIds: ['respawn-1'],
-      status: 'live',
-      startDate: 'Live Now • Match 4/6',
-      description: 'High octane battle royale showdown on World\'s Edge and Storm Point. Frag multipliers enabled for 3+ kill streaks.',
-      rules: 'Standard ALGS scoring: 1st (12 pts), 2nd (9 pts), 3rd (7 pts) + 1 pt per kill.',
-      gameBanner: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=800&auto=format&fit=crop&q=80',
-      bracket: [],
-      createdAt: '2026-10-21',
-      updatedAt: '2026-10-25',
-    },
-    {
-      id: 'tourn-3',
-      title: 'Counter-Strike 2 Major Scrim Invitational',
-      game: 'Counter-Strike 2',
-      host: 'ESL Pro League',
-      hostId: 'esl-admin',
-      type: 'Single Elimination',
-      format: '5v5 Competitive MR12',
-      prizePool: '$8,000 USD + 600 Trophies',
-      entryFee: 'Free Entry',
-      maxParticipants: 16,
-      currentParticipants: 11,
-      registeredPlayerIds: [],
-      status: 'upcoming',
-      startDate: 'Saturday @ 7:00 PM EST',
-      description: 'Open bracket qualifiers feeding into the Challenger Major. 128-tick private server cluster with VAC live safeguard.',
-      rules: 'Veto system via captain chat. Overtime MR3 $10,000 max round cash.',
-      gameBanner: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop&q=80',
-      bracket: [],
-      createdAt: '2026-10-22',
-      updatedAt: '2026-10-25',
-    },
-    {
-      id: 'tourn-4',
-      title: 'Rocket League Cyber Cup Season 5',
-      game: 'Rocket League',
-      host: 'Psyonix Masters Circuit',
-      hostId: 'psyonix-host',
-      type: 'Double Elimination',
-      format: '3v3 Soccar (BO5)',
-      prizePool: '$2,500 USD + 400 Trophies',
-      entryFee: 'Free Entry',
-      maxParticipants: 32,
-      currentParticipants: 22,
-      registeredPlayerIds: [],
-      status: 'upcoming',
-      startDate: 'Sunday @ 4:00 PM EST',
-      description: 'Fast aerials and high-speed goals. Both upper and lower bracket losers bracket runs supported.',
-      rules: 'Standard competitive stadium only. Mutators disabled.',
-      gameBanner: 'https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?w=800&auto=format&fit=crop&q=80',
-      bracket: [],
-      createdAt: '2026-10-23',
-      updatedAt: '2026-10-25',
-    },
-    {
-      id: 'tourn-5',
-      title: 'Fortnite Solo Blitz Championship',
-      game: 'Fortnite',
-      host: 'FNCS Community League',
-      hostId: 'fncs-host',
-      type: 'Battle Royale Points',
-      format: 'Solo Build Showdown',
-      prizePool: '$3,000 USD + 350 Trophies',
-      entryFee: 'Free Entry',
-      maxParticipants: 64,
-      currentParticipants: 58,
-      registeredPlayerIds: [],
-      status: 'upcoming',
-      startDate: 'Nov 1st @ 5:00 PM EST',
-      description: 'Test your editing speed and piece control against the region\'s fastest solo fraggers.',
-      rules: 'Points for placement and eliminations. Anonymous mode must be off.',
-      gameBanner: 'https://images.unsplash.com/photo-1560253023-3ec5d502959f?w=800&auto=format&fit=crop&q=80',
-      bracket: [],
-      createdAt: '2026-10-24',
-      updatedAt: '2026-10-25',
-    }
-  ]);
+        setTournamentsLoading(false);
+      }, (err) => {
+        console.warn('Tournaments snapshot listener error:', err);
+        setTournamentsLoading(false);
+      });
+    };
+
+    initTournaments();
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  // Real-time Firestore Broadcast Ticker sync
+  useEffect(() => {
+    const broadcastRef = doc(db, 'system', 'broadcast');
+    const unsubscribe = onSnapshot(broadcastRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        if (data.active && data.message) {
+          setGlobalBroadcast(data.message);
+        } else {
+          setGlobalBroadcast(null);
+        }
+      } else {
+        setGlobalBroadcast('ROBLOX RIVALS TOURNAMENT: 1v1 Arena Aim Duels are LIVE! Challenge rivals and wager trophies now.');
+      }
+    }, (err) => {
+      console.warn('Broadcast listener error:', err);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Route Listener for Secret Admin Route
   useEffect(() => {
@@ -302,6 +380,18 @@ export default function App() {
     setIsAdminRoute(false);
   };
 
+  // Check cached session on startup
+  useEffect(() => {
+    const cached = localStorage.getItem('gamein_pro_user');
+    if (cached) {
+      try {
+        setCurrentUser(JSON.parse(cached));
+      } catch (e) {
+        console.warn('Error restoring cached gamer session:', e);
+      }
+    }
+  }, []);
+
   // Listen to Firebase Auth state on mount
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
@@ -310,7 +400,9 @@ export default function App() {
           const userDocRef = doc(db, 'users', fbUser.uid);
           const docSnap = await getDoc(userDocRef);
           if (docSnap.exists()) {
-            setCurrentUser(docSnap.data() as UserProfile);
+            const profile = docSnap.data() as UserProfile;
+            setCurrentUser(profile);
+            localStorage.setItem('gamein_pro_user', JSON.stringify(profile));
           } else {
             const cleanName = fbUser.displayName || 'Alex Mercer';
             const fallbackProfile: UserProfile = {
@@ -326,10 +418,10 @@ export default function App() {
               trophies: 680,
               rank: 'Gold',
               role: fbUser.email === 'ekagrkhannaind120@gmail.com' ? 'admin' : 'gamer',
-              bio: 'Competitive esports player on GameIn Pro.',
-              proGames: ['Marvel Rivals', 'Valorant'],
-              primaryGame: 'Marvel Rivals',
-              playstyle: 'Duelist / Entry Fragger',
+              bio: 'Roblox Rivals and esports competitor on GameIn Pro.',
+              proGames: ['Roblox Rivals', 'Valorant'],
+              primaryGame: 'Roblox Rivals',
+              playstyle: 'Duelist and Fragger',
               rivals: ['ViperX_Pro'],
               matchesPlayed: 48,
               wins: 32,
@@ -340,6 +432,7 @@ export default function App() {
               updatedAt: new Date().toISOString(),
             };
             setCurrentUser(fallbackProfile);
+            localStorage.setItem('gamein_pro_user', JSON.stringify(fallbackProfile));
           }
         } catch (e) {
           console.warn('Error reading user profile from Firestore:', e);
@@ -356,31 +449,39 @@ export default function App() {
     setIsRivalsModalOpen(true);
   };
 
-  // Handle Joining a Tournament
-  const handleJoinTournament = (tournamentId: string) => {
+  // Handle Joining a Tournament with Firestore Persistence
+  const handleJoinTournament = async (tournamentId: string) => {
     if (!currentUser) {
       setIsAuthModalOpen(true);
       return;
     }
 
-    setTournaments((prev) =>
-      prev.map((t) => {
-        if (t.id === tournamentId) {
-          const currentP = t.registeredPlayerIds || [];
-          if (!currentP.includes(currentUser.userId)) {
-            return {
-              ...t,
-              currentParticipants: Math.min(t.maxParticipants, t.currentParticipants + 1),
-              registeredPlayerIds: [...currentP, currentUser.userId],
-            };
-          }
-        }
-        return t;
-      })
-    );
+    if (currentUser.isBanned) {
+      alert('Your account is currently suspended from participating in competitive tournaments.');
+      return;
+    }
 
-    // Reward XP for tournament participation
-    handleAwardXpAndTrophies(300, 25, 'Tournament Registration');
+    const target = tournaments.find((t) => t.id === tournamentId);
+    if (!target) return;
+
+    const currentP = target.registeredPlayerIds || [];
+    if (!currentP.includes(currentUser.userId)) {
+      const newParticipants = Math.min(target.maxParticipants, target.currentParticipants + 1);
+      const newPlayers = [...currentP, currentUser.userId];
+
+      try {
+        await updateDoc(doc(db, 'tournaments', tournamentId), {
+          currentParticipants: newParticipants,
+          registeredPlayerIds: newPlayers,
+          updatedAt: new Date().toISOString()
+        });
+      } catch (err) {
+        console.warn('Error saving tournament registration to Firestore:', err);
+      }
+
+      // Reward XP for tournament participation
+      handleAwardXpAndTrophies(300, 25, 'Tournament Registration');
+    }
   };
 
   // Award XP and Trophies (e.g. from Quests, Reflex Lab, Tournament win)
@@ -436,64 +537,107 @@ export default function App() {
     } catch {}
   };
 
-  // Host/Admin updates a bracket match score
-  const handleUpdateBracketMatch = (tournamentId: string, matchId: string, winnerName: string, scoreA: number, scoreB: number) => {
-    setTournaments((prev) =>
-      prev.map((t) => {
-        if (t.id === tournamentId && t.bracket) {
-          const updatedBracket = t.bracket.map((m) => {
-            if (m.id === matchId) {
-              return {
-                ...m,
-                teamA: { ...m.teamA, score: scoreA, winner: m.teamA.name === winnerName },
-                teamB: { ...m.teamB, score: scoreB, winner: m.teamB.name === winnerName },
-                status: 'completed' as const
-              };
-            }
-            return m;
-          });
-          return { ...t, bracket: updatedBracket };
-        }
-        return t;
-      })
-    );
+  // Host/Admin updates a bracket match score (persisted to Firestore)
+  const handleUpdateBracketMatch = async (tournamentId: string, matchId: string, winnerName: string, scoreA: number, scoreB: number) => {
+    const target = tournaments.find((t) => t.id === tournamentId);
+    if (!target || !target.bracket) return;
+
+    const updatedBracket = target.bracket.map((m) => {
+      if (m.id === matchId) {
+        return {
+          ...m,
+          teamA: { ...m.teamA, score: scoreA, winner: m.teamA.name === winnerName },
+          teamB: { ...m.teamB, score: scoreB, winner: m.teamB.name === winnerName },
+          status: 'completed' as const
+        };
+      }
+      return m;
+    });
+
+    try {
+      await updateDoc(doc(db, 'tournaments', tournamentId), {
+        bracket: updatedBracket,
+        updatedAt: new Date().toISOString()
+      });
+    } catch (err) {
+      console.warn('Error updating bracket in Firestore:', err);
+    }
 
     if (selectedTournament && selectedTournament.id === tournamentId) {
-      setSelectedTournament((prev) => {
-        if (!prev || !prev.bracket) return prev;
-        const updatedBracket = prev.bracket.map((m) => {
-          if (m.id === matchId) {
-            return {
-              ...m,
-              teamA: { ...m.teamA, score: scoreA, winner: m.teamA.name === winnerName },
-              teamB: { ...m.teamB, score: scoreB, winner: m.teamB.name === winnerName },
-              status: 'completed' as const
-            };
-          }
-          return m;
-        });
-        return { ...prev, bracket: updatedBracket };
-      });
+      setSelectedTournament((prev) => (prev ? { ...prev, bracket: updatedBracket } : null));
     }
   };
 
-  // Host/Admin changes tournament status
-  const handleUpdateStatus = (tournamentId: string, newStatus: 'upcoming' | 'live' | 'completed', winnerName?: string) => {
-    setTournaments((prev) =>
-      prev.map((t) => {
-        if (t.id === tournamentId) {
-          return {
-            ...t,
-            status: newStatus,
-            winner: winnerName || t.winner,
-          };
-        }
-        return t;
-      })
-    );
+  // Host/Admin changes tournament status (persisted to Firestore)
+  const handleUpdateStatus = async (tournamentId: string, newStatus: 'upcoming' | 'live' | 'completed', winnerName?: string) => {
+    try {
+      const updateData: any = {
+        status: newStatus,
+        updatedAt: new Date().toISOString()
+      };
+      if (winnerName) {
+        updateData.winner = winnerName;
+      }
+      await updateDoc(doc(db, 'tournaments', tournamentId), updateData);
+    } catch (err) {
+      console.warn('Error updating tournament status in Firestore:', err);
+    }
 
     if (selectedTournament && selectedTournament.id === tournamentId) {
       setSelectedTournament((prev) => (prev ? { ...prev, status: newStatus, winner: winnerName || prev.winner } : null));
+    }
+  };
+
+  // Create tournament (persisted to Firestore)
+  const handleCreateTournament = async (newTourn: Omit<Tournament, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const created: Tournament = {
+      ...newTourn,
+      id: `tourn-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    try {
+      await setDoc(doc(db, 'tournaments', created.id), created);
+    } catch (err) {
+      console.error('Error creating tournament in Firestore:', err);
+      setTournaments((prev) => [created, ...prev]);
+    }
+  };
+
+  // Delete tournament (persisted to Firestore)
+  const handleDeleteTournament = async (tId: string) => {
+    try {
+      await deleteDoc(doc(db, 'tournaments', tId));
+    } catch (err) {
+      console.error('Error deleting tournament from Firestore:', err);
+      setTournaments((prev) => prev.filter((t) => t.id !== tId));
+    }
+  };
+
+  // Global Alert Broadcast (persisted to Firestore)
+  const handleBroadcastAlert = async (msg: string) => {
+    setGlobalBroadcast(msg);
+    try {
+      await setDoc(doc(db, 'system', 'broadcast'), {
+        message: msg,
+        active: true,
+        updatedAt: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error('Error persisting broadcast in Firestore:', err);
+    }
+  };
+
+  // Dismiss Broadcast
+  const handleDismissBroadcast = async () => {
+    setGlobalBroadcast(null);
+    try {
+      await setDoc(doc(db, 'system', 'broadcast'), {
+        active: false,
+        dismissedAt: new Date().toISOString()
+      }, { merge: true });
+    } catch (err) {
+      console.error('Error dismissing broadcast in Firestore:', err);
     }
   };
 
@@ -511,20 +655,10 @@ export default function App() {
         currentUser={currentUser}
         tournaments={tournaments}
         onExitAdmin={navigateFromAdmin}
-        onCreateTournament={(newTourn) => {
-          const created: Tournament = {
-            ...newTourn,
-            id: `tourn-${Date.now()}`,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          };
-          setTournaments([created, ...tournaments]);
-        }}
-        onDeleteTournament={(tId) => {
-          setTournaments(prev => prev.filter(t => t.id !== tId));
-        }}
+        onCreateTournament={handleCreateTournament}
+        onDeleteTournament={handleDeleteTournament}
         onUpdateStatus={handleUpdateStatus}
-        onBroadcastAlert={(msg) => setGlobalBroadcast(msg)}
+        onBroadcastAlert={handleBroadcastAlert}
       />
     );
   }
@@ -539,12 +673,20 @@ export default function App() {
             <span className="font-heading tracking-wide uppercase">{globalBroadcast}</span>
           </div>
           <button 
-            onClick={() => setGlobalBroadcast(null)}
-            className="p-1 rounded hover:bg-rose-800 text-rose-200"
+            onClick={handleDismissBroadcast}
+            className="p-1 rounded hover:bg-rose-800 text-rose-200 transition-colors"
             aria-label="Dismiss broadcast"
           >
             <X className="w-4 h-4" />
           </button>
+        </div>
+      )}
+
+      {/* Account Suspended Notice (if user is banned) */}
+      {currentUser?.isBanned && (
+        <div className="bg-rose-950/95 border-b-2 border-rose-600 px-4 py-2.5 text-xs font-bold text-rose-200 flex items-center justify-center gap-2">
+          <Shield className="w-4 h-4 text-rose-400 flex-shrink-0" />
+          <span>ACCOUNT NOTICE: Your gamer profile is currently suspended by an administrator for rules review. Tournament entries and duels are locked.</span>
         </div>
       )}
 
@@ -786,7 +928,7 @@ export default function App() {
                 </h1>
 
                 <p className="text-sm sm:text-base text-slate-200 max-w-xl leading-relaxed font-medium">
-                  Verified competitive brackets across <strong className="text-white">Marvel Rivals</strong>, Valorant, Apex Legends, CS2, and Fortnite. Enter with your Real Name and unique Gamer Handle, challenge rivals in 1v1 scrims, and win trophies.
+                  Verified competitive brackets across <strong className="text-white">Roblox Rivals</strong>, Valorant, Apex Legends, CS2, and Fortnite. Enter with your Real Name and unique Gamer Handle, challenge rivals in 1v1 scrims, and win trophies.
                 </p>
 
                 {/* Hero CTAs: EXACTLY ONE PRIMARY HIGH-CONTRAST BUTTON, OTHERS OUTLINED */}
@@ -837,8 +979,8 @@ export default function App() {
                     <span className="text-lg font-bold text-sky-300 mt-1 block">1,850+</span>
                   </div>
                   <div className="p-3 rounded-lg bg-[#1e293b] border border-slate-700">
-                    <span className="text-xs text-slate-300 font-semibold uppercase block">Marvel Rivals</span>
-                    <span className="text-lg font-bold text-rose-400 mt-1 block">Live 6v6</span>
+                    <span className="text-xs text-slate-300 font-semibold uppercase block">Roblox Rivals</span>
+                    <span className="text-lg font-bold text-rose-400 mt-1 block">1v1 Duels</span>
                   </div>
                 </div>
               </div>
@@ -865,7 +1007,7 @@ export default function App() {
                   TOURNAMENT DIRECTORY
                 </h2>
                 <p className="text-xs text-slate-300 font-medium mt-0.5">
-                  Real-time brackets, prize pools, and schedules for Marvel Rivals and competitive titles.
+                  Real-time brackets, prize pools, and schedules for Roblox Rivals and competitive titles.
                 </p>
               </div>
 
@@ -899,9 +1041,9 @@ export default function App() {
               </div>
             </div>
 
-            {/* Game Category Filter Pills (Prominent Marvel Rivals) */}
+            {/* Game Category Filter Pills (Prominent Roblox Rivals) */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1">
-              {['All', 'Marvel Rivals', 'Valorant', 'Apex Legends', 'Counter-Strike 2', 'Rocket League', 'Fortnite'].map((g) => (
+              {['All', 'Roblox Rivals', 'Valorant', 'Apex Legends', 'Counter-Strike 2', 'Rocket League', 'Fortnite'].map((g) => (
                 <button
                   key={g}
                   onClick={() => setSelectedGameFilter(g)}
@@ -917,7 +1059,18 @@ export default function App() {
             </div>
 
             {/* Tournaments Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {tournamentsLoading ? (
+              <div className="bg-[#0f172a] border-2 border-slate-700 rounded-xl p-10 text-center text-slate-300">
+                <p className="text-sm font-semibold font-mono animate-pulse">Synchronizing live tournaments from database...</p>
+              </div>
+            ) : filteredTournaments.length === 0 ? (
+              <div className="bg-[#0f172a] border-2 border-slate-700 rounded-xl p-10 text-center text-slate-300 space-y-3">
+                <Trophy className="w-8 h-8 text-slate-500 mx-auto" />
+                <p className="text-sm font-semibold text-white">No tournaments found.</p>
+                <p className="text-xs text-slate-400">Host a new tournament above or visit the Secret Admin Nexus Route to manage official brackets.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredTournaments.map((tourn) => {
                 const isRegistered = currentUser && tourn.registeredPlayerIds?.includes(currentUser.userId);
 
@@ -1023,6 +1176,7 @@ export default function App() {
                 );
               })}
             </div>
+            )}
           </div>
         )}
 
@@ -1046,8 +1200,8 @@ export default function App() {
             onOpenReflexLab={() => setActiveTab('reflex')}
             onOpenChat={() => setActiveTab('chat')}
             onOpenTactics={() => {
-              setTacticalInitialGame('Marvel Rivals');
-              setTacticalInitialTopic('Scout Tokyo 2099 convoy strategies for tournament finals');
+              setTacticalInitialGame('Roblox Rivals');
+              setTacticalInitialTopic('Scout Roblox Rivals Arena 1v1 aim duel tactics');
               setIsTacticalScoutOpen(true);
             }}
             onOpenTournaments={() => setActiveTab('tournaments')}
@@ -1108,13 +1262,13 @@ export default function App() {
                 <button
                   onClick={() => {
                     setChatChannelId('tournament-tourn-rivals-1');
-                    setChatChannelTitle('Marvel Rivals Comms');
+                    setChatChannelTitle('Roblox Rivals Comms');
                   }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-colors ${
                     chatChannelId === 'tournament-tourn-rivals-1' ? 'bg-sky-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300 border border-slate-700'
                   }`}
                 >
-                  Marvel Rivals
+                  Roblox Rivals
                 </button>
               </div>
             </div>
@@ -1175,13 +1329,7 @@ export default function App() {
           currentUser={currentUser}
           onClose={() => setIsCreateTournamentOpen(false)}
           onCreateTournament={(newTourn) => {
-            const created: Tournament = {
-              ...newTourn,
-              id: `tourn-${Date.now()}`,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            };
-            setTournaments([created, ...tournaments]);
+            handleCreateTournament(newTourn);
             confetti({
               particleCount: 70,
               spread: 60,
@@ -1257,7 +1405,7 @@ export default function App() {
             <Trophy className="w-4 h-4 text-sky-400" />
             <span className="font-heading font-bold text-white text-sm">GAMEIN PRO</span>
             <span className="text-slate-500">|</span>
-            <span>Real Name • Unique Handles • Rivals • Marvel Rivals & Esports</span>
+            <span>Real Name | Unique Handles | Roblox Rivals & Esports</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-4">

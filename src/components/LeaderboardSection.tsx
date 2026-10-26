@@ -31,15 +31,15 @@ export default function LeaderboardSection({
       trophies: 2840,
       rank: 'Apex Predator',
       role: 'admin',
-      bio: 'ESL Pro Circuit Champion | Marvel Rivals & Valorant Flex Specialist',
-      proGames: ['Marvel Rivals', 'Valorant'],
-      primaryGame: 'Marvel Rivals',
-      playstyle: 'Duelist / Entry Fragger',
+      bio: 'Roblox Rivals Grand Champion and Aim Specialist',
+      proGames: ['Roblox Rivals', 'Valorant'],
+      primaryGame: 'Roblox Rivals',
+      playstyle: 'Duelist and Fragger',
       rivals: ['ShadowBlade_99'],
       matchesPlayed: 412,
       wins: 308,
       kdRatio: '2.48',
-      badges: ['Apex Champion', 'Trophy Titan', 'Reflex Master', 'Tactical Ace'],
+      badges: ['Apex Champion', 'Trophy Titan', 'Reflex Master', 'Rivals Ace'],
       recentMatches: [],
       createdAt: '2025-01-15',
       updatedAt: '2026-10-25'
@@ -57,15 +57,15 @@ export default function LeaderboardSection({
       trophies: 2610,
       rank: 'Apex Predator',
       role: 'gamer',
-      bio: 'CS2 Major Grand Finalist | Awper & Marvel Rivals Marksman',
-      proGames: ['Counter-Strike 2', 'Marvel Rivals'],
-      primaryGame: 'Counter-Strike 2',
-      playstyle: 'Sniper / Long-Range Recon',
+      bio: 'Roblox Rivals Sniper Legend and CS2 Major Finalist',
+      proGames: ['Roblox Rivals', 'Counter-Strike 2'],
+      primaryGame: 'Roblox Rivals',
+      playstyle: 'Sniper and Long Range Recon',
       rivals: ['ViperX_Pro'],
       matchesPlayed: 380,
       wins: 274,
       kdRatio: '2.31',
-      badges: ['Major Finalist', 'Sniper Elite', 'Reflex King'],
+      badges: ['Sniper Elite', 'Reflex King', 'Rivals Ace'],
       recentMatches: [],
       createdAt: '2025-02-10',
       updatedAt: '2026-10-25'
@@ -83,10 +83,10 @@ export default function LeaderboardSection({
       trophies: 2390,
       rank: 'Master',
       role: 'gamer',
-      bio: 'Apex Legends Global Series Contender | Support Anchor & IGL',
-      proGames: ['Marvel Rivals', 'Apex Legends'],
-      primaryGame: 'Marvel Rivals',
-      playstyle: 'Support / Flex Anchor',
+      bio: 'Roblox Rivals 1v1 Scrim Master and Apex Player',
+      proGames: ['Roblox Rivals', 'Apex Legends'],
+      primaryGame: 'Roblox Rivals',
+      playstyle: 'Support and Flex Anchor',
       rivals: ['CyberPhoenix'],
       matchesPlayed: 320,
       wins: 219,
@@ -109,10 +109,10 @@ export default function LeaderboardSection({
       trophies: 2150,
       rank: 'Master',
       role: 'gamer',
-      bio: 'Valorant Radiant | Initiator main | Flash assist specialist',
-      proGames: ['Valorant', 'Marvel Rivals'],
-      primaryGame: 'Valorant',
-      playstyle: 'In-Game Leader / Strategist',
+      bio: 'Valorant Radiant and Roblox Rivals Fast Fragger',
+      proGames: ['Roblox Rivals', 'Valorant'],
+      primaryGame: 'Roblox Rivals',
+      playstyle: 'In Game Leader and Strategist',
       rivals: ['ViperX_Pro'],
       matchesPlayed: 295,
       wins: 198,
@@ -135,10 +135,10 @@ export default function LeaderboardSection({
       trophies: 1980,
       rank: 'Diamond',
       role: 'gamer',
-      bio: 'Rocket League Grand Champion | Marvel Rivals Dive Vanguard',
-      proGames: ['Rocket League', 'Marvel Rivals'],
-      primaryGame: 'Marvel Rivals',
-      playstyle: 'Vanguard / Dive Tank',
+      bio: 'Roblox Rivals 1v1 Arena Grinder',
+      proGames: ['Roblox Rivals', 'Rocket League'],
+      primaryGame: 'Roblox Rivals',
+      playstyle: 'Duelist and Fragger',
       rivals: ['NeonPulse_Valk'],
       matchesPlayed: 260,
       wins: 172,
@@ -337,11 +337,11 @@ export default function LeaderboardSection({
                 </span>
               </div>
               <p className="text-xs text-slate-200 mt-1 flex items-center gap-2 font-medium">
-                <span>LVL {currentUser.level}</span>
-                <span>•</span>
+                <span>Level {currentUser.level}</span>
+                <span>|</span>
                 <span className="text-amber-300 font-bold">{currentUser.trophies} Trophies</span>
-                <span>•</span>
-                <span>{currentUser.wins} Wins / {currentUser.matchesPlayed} Matches</span>
+                <span>|</span>
+                <span>{currentUser.wins} Wins in {currentUser.matchesPlayed} Matches</span>
               </p>
             </div>
           </div>
@@ -575,7 +575,7 @@ export default function LeaderboardSection({
                             )}
                           </div>
                           <span className="text-xs text-slate-300 block">
-                            {gamer.realName || gamer.displayName} {gamer.proGames && gamer.proGames.length > 0 ? `• ${gamer.proGames[0]}` : ''}
+                            {gamer.realName || gamer.displayName} {gamer.proGames && gamer.proGames.length > 0 ? `(${gamer.proGames[0]})` : ''}
                           </span>
                         </div>
                       </div>

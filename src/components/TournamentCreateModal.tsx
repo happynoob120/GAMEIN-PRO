@@ -9,7 +9,7 @@ interface TournamentCreateModalProps {
 }
 
 const POPULAR_GAMES = [
-  { name: 'Marvel Rivals', banner: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80' },
+  { name: 'Roblox Rivals', banner: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80' },
   { name: 'Valorant', banner: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80' },
   { name: 'Apex Legends', banner: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&auto=format&fit=crop&q=80' },
   { name: 'Counter-Strike 2', banner: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=800&auto=format&fit=crop&q=80' },
@@ -24,7 +24,7 @@ export default function TournamentCreateModal({
   onCreateTournament
 }: TournamentCreateModalProps) {
   const [title, setTitle] = useState('');
-  const [game, setGame] = useState('Valorant');
+  const [game, setGame] = useState('Roblox Rivals');
   const [host, setHost] = useState(currentUser?.displayName || 'GameIn Pro Esports');
   const [type, setType] = useState<'Single Elimination' | 'Double Elimination' | 'Battle Royale Points' | 'Round Robin'>('Single Elimination');
   const [format, setFormat] = useState('5v5 Competitive');

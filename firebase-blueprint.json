@@ -1,0 +1,144 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Gamer profile containing real name, unique handle, pro games, rivals, stats, level, and role.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "realName": { "type": "string", "maxLength": 60 },
+        "gamerTag": { "type": "string", "maxLength": 30 },
+        "displayName": { "type": "string", "maxLength": 60 },
+        "email": { "type": "string", "maxLength": 100 },
+        "photoURL": { "type": "string", "maxLength": 500 },
+        "level": { "type": "number" },
+        "xp": { "type": "number" },
+        "trophies": { "type": "number" },
+        "rank": { "type": "string", "maxLength": 30 },
+        "role": { "type": "string", "enum": ["gamer", "admin"] },
+        "proGames": { "type": "array" },
+        "primaryGame": { "type": "string", "maxLength": 50 },
+        "playstyle": { "type": "string", "maxLength": 50 },
+        "rivals": { "type": "array" },
+        "bio": { "type": "string", "maxLength": 250 },
+        "matchesPlayed": { "type": "number" },
+        "wins": { "type": "number" },
+        "kdRatio": { "type": "string", "maxLength": 10 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "realName", "gamerTag", "level", "xp", "trophies", "rank", "role"]
+    },
+    "HandleReservation": {
+      "title": "Handle Reservation",
+      "description": "Enforces global uniqueness of gamer handles across the platform.",
+      "type": "object",
+      "properties": {
+        "handle": { "type": "string", "maxLength": 30 },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["handle", "userId"]
+    },
+    "Rivalry": {
+      "title": "Pro Gamer Rivalry Challenge",
+      "description": "1v1 Head-to-Head rival duel or tournament rivalry match.",
+      "type": "object",
+      "properties": {
+        "challengerId": { "type": "string" },
+        "challengerTag": { "type": "string", "maxLength": 30 },
+        "rivalId": { "type": "string" },
+        "rivalTag": { "type": "string", "maxLength": 30 },
+        "game": { "type": "string", "maxLength": 50 },
+        "wagerTrophies": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "completed", "declined"] },
+        "winnerId": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["challengerId", "challengerTag", "rivalId", "rivalTag", "game", "status"]
+    },
+    "Tournament": {
+      "title": "Tournament",
+      "description": "Competitive esports tournament listing and bracket state.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 100 },
+        "game": { "type": "string", "maxLength": 50 },
+        "host": { "type": "string", "maxLength": 50 },
+        "hostId": { "type": "string" },
+        "type": { "type": "string", "enum": ["Single Elimination", "Double Elimination", "Battle Royale Points", "Round Robin"] },
+        "format": { "type": "string", "maxLength": 30 },
+        "prizePool": { "type": "string", "maxLength": 50 },
+        "entryFee": { "type": "string", "maxLength": 30 },
+        "maxParticipants": { "type": "number" },
+        "currentParticipants": { "type": "number" },
+        "status": { "type": "string", "enum": ["upcoming", "live", "completed"] },
+        "startDate": { "type": "string", "maxLength": 50 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "rules": { "type": "string", "maxLength": 1000 },
+        "registeredPlayerIds": { "type": "array" },
+        "winner": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["title", "game", "host", "hostId", "type", "prizePool", "status", "maxParticipants"]
+    },
+    "Message": {
+      "title": "Chat Message",
+      "description": "Real-time chat message from a tournament participant or lobby member.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string", "maxLength": 50 },
+        "userAvatar": { "type": "string", "maxLength": 500 },
+        "userLevel": { "type": "number" },
+        "text": { "type": "string", "maxLength": 500 },
+        "channelId": { "type": "string", "maxLength": 60 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "userName", "text", "channelId", "createdAt"]
+    },
+    "UserQuest": {
+      "title": "User Quest Progress",
+      "description": "Daily quest completion state for a gamer.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "questId": { "type": "string", "maxLength": 50 },
+        "progress": { "type": "number" },
+        "target": { "type": "number" },
+        "completed": { "type": "boolean" },
+        "claimed": { "type": "boolean" },
+        "xpReward": { "type": "number" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "questId", "progress", "target", "completed", "claimed"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores gamer profiles, real names, unique tags, pro games, rivals, and stats."
+    },
+    "/handles/{handle}": {
+      "schema": { "$ref": "#/entities/HandleReservation" },
+      "description": "Stores reserved unique gamer tags to prevent duplicates."
+    },
+    "/rivalries/{rivalryId}": {
+      "schema": { "$ref": "#/entities/Rivalry" },
+      "description": "Stores 1v1 pro gamer rivalry duels and head-to-head records."
+    },
+    "/tournaments/{tournamentId}": {
+      "schema": { "$ref": "#/entities/Tournament" },
+      "description": "Competitive tournaments with host, game info, status, and participants."
+    },
+    "/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/Message" },
+      "description": "Live chat messages across global and tournament channels."
+    },
+    "/quests/{questDocId}": {
+      "schema": { "$ref": "#/entities/UserQuest" },
+      "description": "User specific quest progress tracking."
+    }
+  }
+}

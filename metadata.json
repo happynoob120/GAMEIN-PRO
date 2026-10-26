@@ -1,0 +1,6 @@
+{
+  "name": "GameIn Pro - Esports Hub & Tournaments",
+  "description": "Next-gen competitive gaming platform with real-time tournament tracking, live participant chat, XP quests, interactive 3D trophies, dynamic leaderboards, and AI match strategy.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
